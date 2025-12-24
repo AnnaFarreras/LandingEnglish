@@ -3,152 +3,95 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Learnig English</title>
+  <title>Learning English</title>
+
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-    }
-    iframe {
-      border: none;
-    }
-  </style>
 </head>
-<body class="bg-gray-100 h-full">
+
+<body class="bg-gray-100 h-screen">
+
   <div class="flex h-full">
-    <!-- Sidebar -->
-    <aside id="sidebar" class="bg-white w-80 h-full shadow-md fixed top-0 left-0 z-10 p-4 overflow-y-auto hidden lg:block">
-      <div id="repos-list" class="space-y-2"></div>
+
+    <!-- SIDEBAR -->
+    <aside
+      id="sidebar"
+      class="bg-white w-80 h-full shadow-md fixed top-0 left-0 z-10 p-4 hidden lg:block"
+    >
+      <h2 class="text-lg font-bold mb-4 text-blue-700">
+        🎓 Jocs d’Anglès
+      </h2>
+
+      <nav class="space-y-2">
+        <a
+          href="https://annafarreras.github.io/Learning_English/"
+          class="block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          🎮 Learning English
+        </a>
+
+        <!-- Afegir més jocs aquí -->
+        <!--
+        <a
+          href="https://annafarreras.github.io/Another_Game/"
+          class="block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          🧠 Vocabulary Game
+        </a>
+        -->
+      </nav>
     </aside>
 
-    <!-- Contingut principal -->
-    <div class="flex-1 h-full ml-0 lg:ml-80 flex flex-col">
-      <header class="bg-blue-600 text-blue-100 text-center text-xl font-bold flex justify-between items-center py-2 px-4">
-        <div>Benvingut a <span class="text-white font-bold">TestàTIC</span>, el teu entrenador digital per aprendre jugant.</div>
-        <button id="toggleSidebar" class="lg:hidden px-3 py-1 bg-blue-500 rounded focus:outline-none">Menú</button>
+    <!-- CONTINGUT PRINCIPAL -->
+    <div class="flex-1 ml-0 lg:ml-80 flex flex-col">
+
+      <!-- HEADER -->
+      <header
+        class="bg-blue-600 text-blue-100 text-center text-xl font-bold flex justify-between items-center py-2 px-4"
+      >
+        <div>
+          Benvingut a
+          <span class="text-white font-bold">Learning English</span>
+        </div>
+
+        <button
+          id="toggleSidebar"
+          class="lg:hidden px-3 py-1 bg-blue-500 rounded focus:outline-none"
+        >
+          Menú
+        </button>
       </header>
 
-      <section class="bg-blue-100 text-gray-800 text-center px-2 py-1">
-        <h1 class="text-sm font-semibold mb-4">
-          Fes un tast de tests interactius i posa a prova els teus coneixements mentre et prepares per dominar l'anglès.<br>
-          Millora cada dia amb petites dosis de pràctica... i diverteix-te aprenent!
+      <!-- HERO / DESCRIPCIÓ -->
+      <section class="bg-blue-100 text-gray-800 text-center px-4 py-6">
+        <h1 class="text-lg font-semibold mb-2">
+          Aprèn anglès jugant
         </h1>
+        <p>
+          Tria un joc de la barra lateral i comença a practicar vocabulari,
+          gramàtica i comprensió d’una manera divertida.
+        </p>
       </section>
 
-      <main class="flex-1 flex">
-        <iframe id="viewer" src="" class="w-full h-full"></iframe>
+      <!-- CONTINGUT -->
+      <main class="flex-1 flex items-center justify-center text-gray-500">
+        <p>
+          ⬅️ Selecciona un joc a la barra lateral per començar
+        </p>
       </main>
+
     </div>
   </div>
 
-  <!-- Toggle sidebar per a mòbil -->
+  <!-- TOGGLE SIDEBAR MOBILE -->
   <script>
     const toggleBtn = document.getElementById('toggleSidebar');
     const sidebar = document.getElementById('sidebar');
+
     toggleBtn.addEventListener('click', () => {
       sidebar.classList.toggle('hidden');
     });
   </script>
 
-  <!-- Carrega la barra lateral jeràrquica -->
-  <script>
-    fetch('data/repos.json')
-      .then(res => res.json())
-      .then(data => {
-        const filteredData = data.filter(repo => repo.name.toLowerCase() !== 'landingpage');
-        const container = document.getElementById('repos-list');
-        container.innerHTML = '';
-
-        filteredData.forEach((repo, repoIndex) => {
-          const repoBtn = document.createElement('button');
-          repoBtn.textContent = `▸ ${repo.name.replaceAll('_', ' ')}`;
-          repoBtn.className = 'w-full text-left px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none';
-          repoBtn.setAttribute('aria-expanded', 'false');
-
-          const repoContent = document.createElement('div');
-          repoContent.className = 'hidden mt-2 ml-4 space-y-1';
-
-          repoBtn.addEventListener('click', () => {
-            const isHidden = repoContent.classList.contains('hidden');
-            repoContent.classList.toggle('hidden');
-            repoBtn.textContent = `${isHidden ? '▾' : '▸'} ${repo.name.replaceAll('_', ' ')}`;
-            repoBtn.setAttribute('aria-expanded', isHidden);
-          });
-
-          // Fitxers a l'arrel del repositori
-          if (repo.files && repo.files.length > 0) {
-            repo.files.forEach(file => {
-              const fileBtn = document.createElement('button');
-              fileBtn.textContent = file.name.replaceAll('_', ' ');
-              fileBtn.className = 'w-full text-left px-3 py-1 bg-blue-400 text-white rounded hover:bg-blue-500 focus:outline-none';
-              fileBtn.title = file.url;
-              fileBtn.addEventListener('click', () => {
-                document.getElementById('viewer').src = file.url;
-                if (window.innerWidth < 1024) {
-                  document.getElementById('sidebar').classList.add('hidden');
-                }
-              });
-              repoContent.appendChild(fileBtn);
-            });
-          }
-
-          // Carpetes dins del repositori
-          repo.folders.forEach((folder, folderIndex) => {
-            const folderBtn = document.createElement('button');
-            folderBtn.textContent = `▸ ${folder.name.replaceAll('_', ' ')}`;
-            folderBtn.className = 'w-full text-left px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none';
-            folderBtn.setAttribute('aria-expanded', 'false');
-
-            const fileList = document.createElement('div');
-            fileList.className = 'hidden mt-1 ml-4 space-y-1';
-
-            folderBtn.addEventListener('click', () => {
-              const isHidden = fileList.classList.contains('hidden');
-              fileList.classList.toggle('hidden');
-              folderBtn.textContent = `${isHidden ? '▾' : '▸'} ${folder.name.replaceAll('_', ' ')}`;
-              folderBtn.setAttribute('aria-expanded', isHidden);
-            });
-
-            folder.files.forEach(file => {
-              const fileBtn = document.createElement('button');
-              fileBtn.textContent = file.name.replaceAll('_', ' ');
-              fileBtn.className = 'w-full text-left px-3 py-1 bg-blue-400 text-white rounded hover:bg-blue-500 focus:outline-none';
-              fileBtn.title = file.url;
-              fileBtn.addEventListener('click', () => {
-                document.getElementById('viewer').src = file.url;
-                if (window.innerWidth < 1024) {
-                  document.getElementById('sidebar').classList.add('hidden');
-                }
-              });
-              fileList.appendChild(fileBtn);
-            });
-
-            repoContent.appendChild(folderBtn);
-            repoContent.appendChild(fileList);
-          });
-
-          container.appendChild(repoBtn);
-          container.appendChild(repoContent);
-        });
-      })
-      .catch(() => {
-        document.getElementById('repos-list').innerHTML = '<p class="text-red-500">No s\'ha pogut carregar el llistat de repositoris.</p>';
-      });
-  </script>
-
-  <!-- Ajust dinàmic d'iframe si es rep missatge -->
-  <script>
-    window.addEventListener('message', (event) => {
-      if (event.data?.type === 'resize-iframe') {
-        const iframes = document.querySelectorAll('iframe');
-        iframes.forEach(iframe => {
-          if (iframe.contentWindow === event.source) {
-            iframe.style.height = event.data.height + 'px';
-          }
-        });
-      }
-    });
-  </script>
 </body>
 </html>
