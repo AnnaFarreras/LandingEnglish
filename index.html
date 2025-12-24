@@ -5,39 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Learning English</title>
 
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    iframe {
+      border: none;
+    }
+  </style>
 </head>
 
-<body class="bg-gray-100 h-screen">
+<body class="bg-gray-100 h-full">
 
   <div class="flex h-full">
 
     <!-- SIDEBAR -->
     <aside
       id="sidebar"
-      class="bg-white w-80 h-full shadow-md fixed top-0 left-0 z-10 p-4 hidden lg:block"
+      class="bg-white w-80 h-full shadow-md fixed top-0 left-0 z-10 p-4 overflow-y-auto hidden lg:block"
     >
       <h2 class="text-lg font-bold mb-4 text-blue-700">
         🎓 Jocs d’Anglès
       </h2>
 
       <nav class="space-y-2">
-        <a
-          href="https://annafarreras.github.io/Learning_English/"
-          class="block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+
+        <button
+          onclick="loadGame('https://annafarreras.github.io/Learning_English/')"
+          class="w-full text-left px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           🎮 Learning English
-        </a>
+        </button>
 
-        <!-- Afegir més jocs aquí -->
+        <!-- futurs jocs -->
         <!--
-        <a
-          href="https://annafarreras.github.io/Another_Game/"
-          class="block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        <button
+          onclick="loadGame('URL_DEL_SEGON_JOC')"
+          class="w-full text-left px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
           🧠 Vocabulary Game
-        </a>
+        </button>
         -->
       </nav>
     </aside>
@@ -62,22 +72,20 @@
         </button>
       </header>
 
-      <!-- HERO / DESCRIPCIÓ -->
-      <section class="bg-blue-100 text-gray-800 text-center px-4 py-6">
-        <h1 class="text-lg font-semibold mb-2">
-          Aprèn anglès jugant
-        </h1>
+      <!-- DESCRIPCIÓ -->
+      <section class="bg-blue-100 text-gray-800 text-center px-4 py-4">
         <p>
-          Tria un joc de la barra lateral i comença a practicar vocabulari,
-          gramàtica i comprensió d’una manera divertida.
+          Tria un joc de la barra lateral i juga sense sortir de la pàgina.
         </p>
       </section>
 
-      <!-- CONTINGUT -->
-      <main class="flex-1 flex items-center justify-center text-gray-500">
-        <p>
-          ⬅️ Selecciona un joc a la barra lateral per començar
-        </p>
+      <!-- IFRAME CENTRAL -->
+      <main class="flex-1 flex">
+        <iframe
+          id="viewer"
+          src=""
+          class="w-full h-full bg-white"
+        ></iframe>
       </main>
 
     </div>
@@ -90,6 +98,24 @@
 
     toggleBtn.addEventListener('click', () => {
       sidebar.classList.toggle('hidden');
+    });
+  </script>
+
+  <!-- LOAD GAME -->
+  <script>
+    function loadGame(url) {
+      document.getElementById('viewer').src = url;
+
+      // només tanquem el menú en mòbil
+      if (window.innerWidth < 1024) {
+        document.getElementById('sidebar').classList.add('hidden');
+      }
+    }
+  </script>
+
+</body>
+</html>
+
     });
   </script>
 
