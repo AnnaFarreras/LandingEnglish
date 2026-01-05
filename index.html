@@ -4,9 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Learning English</title>
-
   <script src="https://cdn.tailwindcss.com"></script>
-
   <style>
     html, body {
       height: 100%;
@@ -15,31 +13,34 @@
     iframe {
       border: none;
     }
+    /* Transició suau per amagar/mostrar */
+    #description {
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    #description.hidden-scroll {
+      transform: translateY(-100%);
+      opacity: 0;
+      pointer-events: none;
+    }
   </style>
 </head>
-
 <body class="bg-gray-100 h-full">
-
   <div class="flex h-full">
-
     <!-- SIDEBAR -->
     <aside
       id="sidebar"
       class="bg-white w-80 h-full shadow-md fixed top-0 left-0 z-10 p-4 overflow-y-auto hidden lg:block"
     >
       <h2 class="text-lg font-bold mb-4 text-blue-700">
-        🎓 Jocs d’Anglès
+        🎓 Jocs d'Anglès
       </h2>
-
       <nav class="space-y-2">
-
         <button
           onclick="loadGame('https://annafarreras.github.io/Learning_English/')"
           class="w-full text-left px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           🎮 Learning English
         </button>
-
         <!-- futurs jocs -->
         <!--
         <button
@@ -51,10 +52,8 @@
         -->
       </nav>
     </aside>
-
     <!-- CONTINGUT PRINCIPAL -->
     <div class="flex-1 ml-0 lg:ml-80 flex flex-col">
-
       <!-- HEADER -->
       <header
         class="bg-blue-600 text-blue-100 text-center text-xl font-bold flex justify-between items-center py-2 px-4"
@@ -63,7 +62,6 @@
           Benvingut a
           <span class="text-white font-bold">Learning English</span>
         </div>
-
         <button
           id="toggleSidebar"
           class="lg:hidden px-3 py-1 bg-blue-500 rounded focus:outline-none"
@@ -71,53 +69,83 @@
           Menú
         </button>
       </header>
-
-      <!-- DESCRIPCIÓ -->
-      <section class="bg-blue-100 text-gray-800 text-center px-4 py-4">
-        <p>
+      <!-- DESCRIPCIÓ (s'amagarà al fer scroll) -->
+      <section 
+        id="description"
+        class="bg-blue-100 text-gray-800 text-center px-4 py-2 lg:py-4"
+      >
+        <p class="text-sm lg:text-base">
           Tria un joc de la barra lateral i juga sense sortir de la pàgina.
         </p>
       </section>
-
       <!-- IFRAME CENTRAL -->
-      <main class="flex-1 flex">
+      <main class="flex-1 flex overflow-hidden">
         <iframe
           id="viewer"
           src=""
           class="w-full h-full bg-white"
         ></iframe>
       </main>
-
     </div>
   </div>
-
   <!-- TOGGLE SIDEBAR MOBILE -->
   <script>
     const toggleBtn = document.getElementById('toggleSidebar');
     const sidebar = document.getElementById('sidebar');
-
     toggleBtn.addEventListener('click', () => {
       sidebar.classList.toggle('hidden');
     });
   </script>
-
   <!-- LOAD GAME -->
   <script>
     function loadGame(url) {
       document.getElementById('viewer').src = url;
-
       // només tanquem el menú en mòbil
       if (window.innerWidth < 1024) {
         document.getElementById('sidebar').classList.add('hidden');
       }
     }
   </script>
-
-</body>
-</html>
-
+  <!-- AUTO-HIDE DESCRIPTION ON SCROLL (només mòbil) -->
+  <script>
+    let lastScroll = 0;
+    const description = document.getElementById('description');
+    const viewer = document.getElementById('viewer');
+    
+    // Detectem scroll dins de l'iframe
+    viewer.addEventListener('load', function() {
+      try {
+        const iframeWindow = viewer.contentWindow;
+        const iframeDocument = iframeWindow.document;
+        
+        iframeDocument.addEventListener('scroll', handleScroll);
+        iframeWindow.addEventListener('scroll', handleScroll);
+      } catch (e) {
+        // Si l'iframe és de diferent origen, no podem accedir al scroll
+        console.log('No es pot detectar scroll dins iframe (CORS)');
+      }
     });
+    
+    // També detectem scroll a la finestra principal (per si de cas)
+    window.addEventListener('scroll', handleScroll);
+    
+    function handleScroll() {
+      // Només en mòbil (menys de 1024px)
+      if (window.innerWidth >= 1024) return;
+      
+      const currentScroll = window.pageYOffset || 
+                           (viewer.contentWindow && viewer.contentWindow.pageYOffset) || 0;
+      
+      if (currentScroll > lastScroll && currentScroll > 30) {
+        // Scroll cap avall - amagar
+        description.classList.add('hidden-scroll');
+      } else if (currentScroll < lastScroll) {
+        // Scroll cap amunt - mostrar
+        description.classList.remove('hidden-scroll');
+      }
+      
+      lastScroll = currentScroll;
+    }
   </script>
-
 </body>
 </html>
