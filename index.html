@@ -16,13 +16,12 @@
     }
     /* Contenidor per header + descripció */
     #topSection {
-      transition: transform 0.3s ease, opacity 0.3s ease;
+      transition: transform 0.3s ease;
       position: relative;
       z-index: 20;
     }
     #topSection.hidden-scroll {
       transform: translateY(-100%);
-      opacity: 0;
     }
     /* L'iframe ha d'omplir tot l'espai */
     #mainContainer {
@@ -55,15 +54,6 @@
         >
           🎮 Learning English
         </button>
-        <!-- futurs jocs -->
-        <!--
-        <button
-          onclick="loadGame('URL_DEL_SEGON_JOC')"
-          class="w-full text-left px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          🧠 Vocabulary Game
-        </button>
-        -->
       </nav>
     </aside>
     
@@ -93,7 +83,7 @@
           class="bg-blue-100 text-gray-800 text-center px-4 py-2 lg:py-4"
         >
           <p class="text-sm lg:text-base">
-            Tria un joc de menú i juga sense sortir de la pàgina.
+            Tria un joc del menú i juga sense sortir de la pàgina.
           </p>
         </section>
       </div>
@@ -122,16 +112,14 @@
   <script>
     function loadGame(url) {
       document.getElementById('viewer').src = url;
-      // només tanquem el menú en mòbil
       if (window.innerWidth < 1024) {
         document.getElementById('sidebar').classList.add('hidden');
       }
     }
   </script>
   
-  <!-- AUTO-HIDE HEADER + DESCRIPTION ON SCROLL (només mòbil) -->
+  <!-- AUTO-HIDE HEADER amb TOUCH/SWIPE -->
   <script>
-    // Calculem l'alçada del header+descripció
     const topSection = document.getElementById('topSection');
     const mainContainer = document.getElementById('mainContainer');
     const viewer = document.getElementById('viewer');
@@ -144,44 +132,58 @@
     updateHeaderHeight();
     window.addEventListener('resize', updateHeaderHeight);
     
-    let lastScrollY = 0;
-    let ticking = false;
+    // Variables per detectar swipe
+    let touchStartY = 0;
+    let touchEndY = 0;
+    let isHeaderVisible = true;
     
-    // Detectem scroll dins de l'iframe
+    // Detectem toc a l'iframe
     viewer.addEventListener('load', function() {
       try {
-        const iframeWindow = viewer.contentWindow;
+        const iframeDoc = viewer.contentDocument || viewer.contentWindow.document;
         
-        iframeWindow.addEventListener('scroll', () => {
-          if (!ticking) {
-            window.requestAnimationFrame(() => {
-              handleScroll(iframeWindow.scrollY || iframeWindow.pageYOffset);
-              ticking = false;
-            });
-            ticking = true;
-          }
-        });
+        iframeDoc.addEventListener('touchstart', handleTouchStart, { passive: true });
+        iframeDoc.addEventListener('touchmove', handleTouchMove, { passive: true });
+        iframeDoc.addEventListener('touchend', handleTouchEnd, { passive: true });
       } catch (e) {
-        // Si l'iframe és de diferent origen, no podem accedir al scroll
-        console.log('No es pot detectar scroll dins iframe (CORS)');
+        console.log('Detectant toc des de fora de l\'iframe');
       }
     });
     
-    function handleScroll(currentScrollY) {
-      // Només en mòbil (menys de 1024px)
+    // També escoltem a la finestra principal
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    function handleTouchStart(e) {
+      if (window.innerWidth >= 1024) return;
+      touchStartY = e.touches[0].clientY;
+    }
+    
+    function handleTouchMove(e) {
+      if (window.innerWidth >= 1024) return;
+      touchEndY = e.touches[0].clientY;
+    }
+    
+    function handleTouchEnd() {
       if (window.innerWidth >= 1024) return;
       
-      if (currentScrollY > lastScrollY && currentScrollY > 50) {
-        // Scroll cap avall - amagar tot
-        topSection.classList.add('hidden-scroll');
-        mainContainer.classList.remove('header-visible');
-      } else if (currentScrollY < lastScrollY) {
-        // Scroll cap amunt - mostrar tot
-        topSection.classList.remove('hidden-scroll');
-        mainContainer.classList.add('header-visible');
-      }
+      const swipeDistance = touchStartY - touchEndY;
+      const minSwipeDistance = 30; // píxels mínims per activar
       
-      lastScrollY = currentScrollY;
+      if (Math.abs(swipeDistance) > minSwipeDistance) {
+        if (swipeDistance > 0 && isHeaderVisible) {
+          // Swipe cap amunt - amagar header
+          topSection.classList.add('hidden-scroll');
+          mainContainer.classList.remove('header-visible');
+          isHeaderVisible = false;
+        } else if (swipeDistance < 0 && !isHeaderVisible) {
+          // Swipe cap avall - mostrar header
+          topSection.classList.remove('hidden-scroll');
+          mainContainer.classList.add('header-visible');
+          isHeaderVisible = true;
+        }
+      }
     }
   </script>
 </body>
