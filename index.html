@@ -9,27 +9,41 @@
     html, body {
       height: 100%;
       margin: 0;
+      overflow: hidden;
     }
     iframe {
       border: none;
     }
-    /* Transició suau per amagar/mostrar */
-    #description {
+    /* Contenidor per header + descripció */
+    #topSection {
       transition: transform 0.3s ease, opacity 0.3s ease;
+      position: relative;
+      z-index: 20;
     }
-    #description.hidden-scroll {
+    #topSection.hidden-scroll {
       transform: translateY(-100%);
       opacity: 0;
-      pointer-events: none;
+    }
+    /* L'iframe ha d'omplir tot l'espai */
+    #mainContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      transition: top 0.3s ease;
+    }
+    #mainContainer.header-visible {
+      top: var(--header-height, 120px);
     }
   </style>
 </head>
-<body class="bg-gray-100 h-full">
+<body class="bg-gray-100">
   <div class="flex h-full">
     <!-- SIDEBAR -->
     <aside
       id="sidebar"
-      class="bg-white w-80 h-full shadow-md fixed top-0 left-0 z-10 p-4 overflow-y-auto hidden lg:block"
+      class="bg-white w-80 h-full shadow-md fixed top-0 left-0 z-30 p-4 overflow-y-auto hidden lg:block"
     >
       <h2 class="text-lg font-bold mb-4 text-blue-700">
         🎓 Jocs d'Anglès
@@ -52,42 +66,49 @@
         -->
       </nav>
     </aside>
+    
     <!-- CONTINGUT PRINCIPAL -->
-    <div class="flex-1 ml-0 lg:ml-80 flex flex-col">
-      <!-- HEADER -->
-      <header
-        class="bg-blue-600 text-blue-100 text-center text-xl font-bold flex justify-between items-center py-2 px-4"
-      >
-        <div>
-          Benvingut a
-          <span class="text-white font-bold">Learning English</span>
-        </div>
-        <button
-          id="toggleSidebar"
-          class="lg:hidden px-3 py-1 bg-blue-500 rounded focus:outline-none"
+    <div class="flex-1 ml-0 lg:ml-80 relative h-full">
+      <!-- SECCIÓ SUPERIOR (Header + Descripció) -->
+      <div id="topSection">
+        <!-- HEADER -->
+        <header
+          id="header"
+          class="bg-blue-600 text-blue-100 text-center text-xl font-bold flex justify-between items-center py-2 px-4"
         >
-          Menú
-        </button>
-      </header>
-      <!-- DESCRIPCIÓ (s'amagarà al fer scroll) -->
-      <section 
-        id="description"
-        class="bg-blue-100 text-gray-800 text-center px-4 py-2 lg:py-4"
-      >
-        <p class="text-sm lg:text-base">
-          Tria un joc de la barra i juga sense sortir de la pàgina.
-        </p>
-      </section>
-      <!-- IFRAME CENTRAL -->
-      <main class="flex-1 flex overflow-hidden">
+          <div>
+            Benvingut a
+            <span class="text-white font-bold">Learning English</span>
+          </div>
+          <button
+            id="toggleSidebar"
+            class="lg:hidden px-3 py-1 bg-blue-500 rounded focus:outline-none"
+          >
+            Menú
+          </button>
+        </header>
+        <!-- DESCRIPCIÓ -->
+        <section 
+          id="description"
+          class="bg-blue-100 text-gray-800 text-center px-4 py-2 lg:py-4"
+        >
+          <p class="text-sm lg:text-base">
+            Tria un joc de menú i juga sense sortir de la pàgina.
+          </p>
+        </section>
+      </div>
+      
+      <!-- CONTENIDOR IFRAME -->
+      <div id="mainContainer" class="header-visible">
         <iframe
           id="viewer"
           src=""
           class="w-full h-full bg-white"
         ></iframe>
-      </main>
+      </div>
     </div>
   </div>
+  
   <!-- TOGGLE SIDEBAR MOBILE -->
   <script>
     const toggleBtn = document.getElementById('toggleSidebar');
@@ -96,6 +117,7 @@
       sidebar.classList.toggle('hidden');
     });
   </script>
+  
   <!-- LOAD GAME -->
   <script>
     function loadGame(url) {
@@ -106,45 +128,60 @@
       }
     }
   </script>
-  <!-- AUTO-HIDE DESCRIPTION ON SCROLL (només mòbil) -->
+  
+  <!-- AUTO-HIDE HEADER + DESCRIPTION ON SCROLL (només mòbil) -->
   <script>
-    let lastScroll = 0;
-    const description = document.getElementById('description');
+    // Calculem l'alçada del header+descripció
+    const topSection = document.getElementById('topSection');
+    const mainContainer = document.getElementById('mainContainer');
     const viewer = document.getElementById('viewer');
+    
+    function updateHeaderHeight() {
+      const height = topSection.offsetHeight;
+      document.documentElement.style.setProperty('--header-height', height + 'px');
+    }
+    
+    updateHeaderHeight();
+    window.addEventListener('resize', updateHeaderHeight);
+    
+    let lastScrollY = 0;
+    let ticking = false;
     
     // Detectem scroll dins de l'iframe
     viewer.addEventListener('load', function() {
       try {
         const iframeWindow = viewer.contentWindow;
-        const iframeDocument = iframeWindow.document;
         
-        iframeDocument.addEventListener('scroll', handleScroll);
-        iframeWindow.addEventListener('scroll', handleScroll);
+        iframeWindow.addEventListener('scroll', () => {
+          if (!ticking) {
+            window.requestAnimationFrame(() => {
+              handleScroll(iframeWindow.scrollY || iframeWindow.pageYOffset);
+              ticking = false;
+            });
+            ticking = true;
+          }
+        });
       } catch (e) {
         // Si l'iframe és de diferent origen, no podem accedir al scroll
         console.log('No es pot detectar scroll dins iframe (CORS)');
       }
     });
     
-    // També detectem scroll a la finestra principal (per si de cas)
-    window.addEventListener('scroll', handleScroll);
-    
-    function handleScroll() {
+    function handleScroll(currentScrollY) {
       // Només en mòbil (menys de 1024px)
       if (window.innerWidth >= 1024) return;
       
-      const currentScroll = window.pageYOffset || 
-                           (viewer.contentWindow && viewer.contentWindow.pageYOffset) || 0;
-      
-      if (currentScroll > lastScroll && currentScroll > 30) {
-        // Scroll cap avall - amagar
-        description.classList.add('hidden-scroll');
-      } else if (currentScroll < lastScroll) {
-        // Scroll cap amunt - mostrar
-        description.classList.remove('hidden-scroll');
+      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        // Scroll cap avall - amagar tot
+        topSection.classList.add('hidden-scroll');
+        mainContainer.classList.remove('header-visible');
+      } else if (currentScrollY < lastScrollY) {
+        // Scroll cap amunt - mostrar tot
+        topSection.classList.remove('hidden-scroll');
+        mainContainer.classList.add('header-visible');
       }
       
-      lastScroll = currentScroll;
+      lastScrollY = currentScrollY;
     }
   </script>
 </body>
