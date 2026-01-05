@@ -35,6 +35,34 @@
     #mainContainer.header-visible {
       top: var(--header-height, 120px);
     }
+    /* Botó flotant per mostrar/amagar */
+    #toggleHeaderBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 50;
+      background: rgba(37, 99, 235, 0.9);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+    #toggleHeaderBtn:active {
+      transform: scale(0.95);
+    }
+    @media (max-width: 1023px) {
+      #toggleHeaderBtn {
+        display: flex;
+      }
+    }
   </style>
 </head>
 <body class="bg-gray-100">
@@ -99,6 +127,11 @@
     </div>
   </div>
   
+  <!-- BOTÓ FLOTANT PER AMAGAR/MOSTRAR HEADER (només mòbil) -->
+  <button id="toggleHeaderBtn" title="Mostra/Amaga capçalera">
+    ▲
+  </button>
+  
   <!-- TOGGLE SIDEBAR MOBILE -->
   <script>
     const toggleBtn = document.getElementById('toggleSidebar');
@@ -118,11 +151,12 @@
     }
   </script>
   
-  <!-- AUTO-HIDE HEADER amb TOUCH/SWIPE -->
+  <!-- TOGGLE HEADER amb BOTÓ -->
   <script>
     const topSection = document.getElementById('topSection');
     const mainContainer = document.getElementById('mainContainer');
-    const viewer = document.getElementById('viewer');
+    const toggleHeaderBtn = document.getElementById('toggleHeaderBtn');
+    let isHeaderVisible = true;
     
     function updateHeaderHeight() {
       const height = topSection.offsetHeight;
@@ -132,59 +166,22 @@
     updateHeaderHeight();
     window.addEventListener('resize', updateHeaderHeight);
     
-    // Variables per detectar swipe
-    let touchStartY = 0;
-    let touchEndY = 0;
-    let isHeaderVisible = true;
-    
-    // Detectem toc a l'iframe
-    viewer.addEventListener('load', function() {
-      try {
-        const iframeDoc = viewer.contentDocument || viewer.contentWindow.document;
-        
-        iframeDoc.addEventListener('touchstart', handleTouchStart, { passive: true });
-        iframeDoc.addEventListener('touchmove', handleTouchMove, { passive: true });
-        iframeDoc.addEventListener('touchend', handleTouchEnd, { passive: true });
-      } catch (e) {
-        console.log('Detectant toc des de fora de l\'iframe');
+    // Botó per mostrar/amagar
+    toggleHeaderBtn.addEventListener('click', () => {
+      if (isHeaderVisible) {
+        // Amagar header
+        topSection.classList.add('hidden-scroll');
+        mainContainer.classList.remove('header-visible');
+        toggleHeaderBtn.innerHTML = '▼';
+        isHeaderVisible = false;
+      } else {
+        // Mostrar header
+        topSection.classList.remove('hidden-scroll');
+        mainContainer.classList.add('header-visible');
+        toggleHeaderBtn.innerHTML = '▲';
+        isHeaderVisible = true;
       }
     });
-    
-    // També escoltem a la finestra principal
-    document.addEventListener('touchstart', handleTouchStart, { passive: true });
-    document.addEventListener('touchmove', handleTouchMove, { passive: true });
-    document.addEventListener('touchend', handleTouchEnd, { passive: true });
-    
-    function handleTouchStart(e) {
-      if (window.innerWidth >= 1024) return;
-      touchStartY = e.touches[0].clientY;
-    }
-    
-    function handleTouchMove(e) {
-      if (window.innerWidth >= 1024) return;
-      touchEndY = e.touches[0].clientY;
-    }
-    
-    function handleTouchEnd() {
-      if (window.innerWidth >= 1024) return;
-      
-      const swipeDistance = touchStartY - touchEndY;
-      const minSwipeDistance = 30; // píxels mínims per activar
-      
-      if (Math.abs(swipeDistance) > minSwipeDistance) {
-        if (swipeDistance > 0 && isHeaderVisible) {
-          // Swipe cap amunt - amagar header
-          topSection.classList.add('hidden-scroll');
-          mainContainer.classList.remove('header-visible');
-          isHeaderVisible = false;
-        } else if (swipeDistance < 0 && !isHeaderVisible) {
-          // Swipe cap avall - mostrar header
-          topSection.classList.remove('hidden-scroll');
-          mainContainer.classList.add('header-visible');
-          isHeaderVisible = true;
-        }
-      }
-    }
   </script>
 </body>
 </html>
